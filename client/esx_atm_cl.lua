@@ -1,9 +1,8 @@
-local GUI          			  = {}
+local GUI					  = {}
 local hasAlreadyEnteredMarker = false
-local isInATMMarker 			  = false
-local menuIsShowed   		  = false
-
-ESX = nil
+local isInATMMarker 		  = false
+local menuIsShowed			  = false
+ESX							  = nil
 
 Citizen.CreateThread(function()
 	while ESX == nil do
@@ -22,7 +21,7 @@ AddEventHandler('esx_atm:closeATM', function()
 end)
 
 RegisterNUICallback('escape', function(data, cb)
-  	TriggerEvent('esx_atm:closeATM')
+	TriggerEvent('esx_atm:closeATM')
 	cb('ok')
 end)
 
@@ -36,26 +35,11 @@ RegisterNUICallback('withdraw', function(data, cb)
 	cb('ok')
 end)
 
--- Create blips
-Citizen.CreateThread(function()
-    for i=1, #Config.ATMS, 1 do    	
-    	local blip = AddBlipForCoord(Config.ATMS[i].x, Config.ATMS[i].y, Config.ATMS[i].z - Config.ZDiff)      
-		SetBlipSprite (blip, Config.BlipSprite)
-		SetBlipDisplay(blip, 4)
-		SetBlipScale  (blip, 0.9)
-		SetBlipColour (blip, 2)
-		SetBlipAsShortRange(blip, true)
-		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString("ATM")
-		EndTextCommandSetBlipName(blip)
-    end
-end)
-
 -- Render markers
 Citizen.CreateThread(function()
-	while true do		
-		Wait(0)		
-		local coords = GetEntityCoords(GetPlayerPed(-1))		
+	while true do
+		Citizen.Wait(10)
+		local coords = GetEntityCoords(GetPlayerPed(-1))
 		for i=1, #Config.ATMS, 1 do
 			if(GetDistanceBetweenCoords(coords, Config.ATMS[i].x, Config.ATMS[i].y, Config.ATMS[i].z, true) < Config.DrawDistance) then
 				DrawMarker(Config.MarkerType, Config.ATMS[i].x, Config.ATMS[i].y, Config.ATMS[i].z - Config.ZDiff, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.ZoneSize.x, Config.ZoneSize.y, Config.ZoneSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
@@ -66,8 +50,8 @@ end)
 
 -- Activate menu when player is inside marker
 Citizen.CreateThread(function()
-	while true do		
-		Wait(0)		
+	while true do
+		Citizen.Wait(10)
 		local coords = GetEntityCoords(GetPlayerPed(-1))
 		isInATMMarker = false
 		for i=1, #Config.ATMS, 1 do
@@ -83,8 +67,8 @@ Citizen.CreateThread(function()
 		end
 		if not isInATMMarker and hasAlreadyEnteredMarker then
 			hasAlreadyEnteredMarker = false
-			SetNuiFocus(false)	
-				menuIsShowed = false	
+			SetNuiFocus(false)
+				menuIsShowed = false
 				SendNUIMessage({
 					hideAll = true
 			})
@@ -95,8 +79,8 @@ end)
 -- Menu interactions
 Citizen.CreateThread(function()
 	while true do
-	  	Wait(0)
-	    if menuIsShowed then
+		Citizen.Wait(10)
+		if menuIsShowed then
 			DisableControlAction(0, 1,   true) -- LookLeftRight
 			DisableControlAction(0, 2,   true) -- LookUpDown
 			DisableControlAction(0, 142, true) -- MeleeAttackAlternate
@@ -106,11 +90,11 @@ Citizen.CreateThread(function()
 					click = true
 				})
 			end
-	    else
-		  	if IsControlJustReleased(0, 38) and isInATMMarker then
-		  		menuIsShowed = true
-				ESX.TriggerServerCallback('esx:getPlayerData', function(data)				    
-				    SendNUIMessage({
+		else
+			if IsControlJustReleased(0, 38) and isInATMMarker then
+				menuIsShowed = true
+				ESX.TriggerServerCallback('esx:getPlayerData', function(data)
+					SendNUIMessage({
 						showMenu = true,
 						player   = {
 							money = data.money,
@@ -120,6 +104,6 @@ Citizen.CreateThread(function()
 				end)
 				SetNuiFocus(true)
 			end
-	    end
+		end
 	end
 end)
